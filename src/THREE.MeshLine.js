@@ -3,13 +3,13 @@
 
     "use strict";
 
-    var root = this
+    var root = this;
 
-    var has_require = typeof require !== 'undefined'
+    var has_require = typeof require !== 'undefined';
 
-    var THREE = root.THREE || has_require && require('three')
+    var THREE = root.THREE || has_require && require('three');
     if (!THREE)
-        throw new Error('MeshLine requires three.js')
+        throw new Error('MeshLine requires three.js');
 
     function MeshLine() {
 
@@ -415,6 +415,38 @@
 
     };
 
+    /**
+     * Fast method to replace the tip position. Good for doing interpolation between calls to advance()
+     * @param position
+     */
+    MeshLine.prototype.replaceTipPosition = function(position) {
+
+        var positions = this.attributes.position.array;
+        var next = this.attributes.next.array;
+        var l = positions.length;
+
+        positions[l - 6] = position.x;
+        positions[l - 5] = position.y;
+        positions[l - 4] = position.z;
+        positions[l - 3] = position.x;
+        positions[l - 2] = position.y;
+        positions[l - 1] = position.z;
+
+        // NEXT
+        memcpy(positions, 6, next, 0, l - 6);
+
+        next[l - 6] = position.x;
+        next[l - 5] = position.y;
+        next[l - 4] = position.z;
+        next[l - 3] = position.x;
+        next[l - 2] = position.y;
+        next[l - 1] = position.z;
+
+        this.attributes.position.needsUpdate = true;
+        this.attributes.next.needsUpdate = true;
+
+    };
+
     THREE.ShaderChunk['meshline_vert'] = [
         '',
         THREE.ShaderChunk.logdepthbuf_pars_vertex,
@@ -442,7 +474,7 @@
         '',
         '    vec2 res = i.xy / i.w;',
         '    res.x *= aspect;',
-        '	 vCounters = counters;',
+        '    vCounters = counters;',
         '    return res;',
         '',
         '}',
