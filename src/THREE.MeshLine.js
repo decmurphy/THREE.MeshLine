@@ -11,7 +11,9 @@
     if (!THREE)
         throw new Error('MeshLine requires three.js');
 
-    function MeshLine() {
+    function MeshLine(name = "") {
+
+        this.name = name;
 
         this.positions = [];
 
